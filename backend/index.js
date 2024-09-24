@@ -82,14 +82,20 @@ app.post('/users', async (req, res) => {
 // update User
 
 app.put('/user/:id', async (req, res) => {
-    console.log(req.params.id); 
+    const userId = Number(req.params.id);
+    console.log("Updating user ID:", userId);
     
     try {
+        const existingUser = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+        
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
         const user = await prisma.user.update({
-            where: {
-                id: Number(req.params.id), // Make sure req.params.id is the correct ID
-            },
-            
+            where: { id: userId },
             data: {
                 name: req.body.name,
                 email: req.body.email,
@@ -97,9 +103,11 @@ app.put('/user/:id', async (req, res) => {
         });
         res.status(200).json(user);
     } catch (error) {
+        console.error("Error updating user:", error);
         res.status(500).json({ message: error.message });
     }
 });
+
 
 
 
